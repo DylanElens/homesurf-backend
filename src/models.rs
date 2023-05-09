@@ -1,8 +1,9 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
+use serde::Serialize;
 use crate::schema::files;
 
-#[derive(Queryable, Debug)]
+#[derive(Queryable, Debug, Serialize)]
 pub struct File {
     pub id: i32,
     pub file_name: String,

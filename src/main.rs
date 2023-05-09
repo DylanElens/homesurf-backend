@@ -1,6 +1,7 @@
 use actix_cors::Cors;
 use actix_files::NamedFile;
 use actix_multipart::Multipart;
+use actix_multipart_demo::models::File;
 use actix_multipart_demo::{create_file, establish_connection, list_files};
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer};
 use futures_util::TryStreamExt as _;
@@ -22,7 +23,7 @@ async fn main() -> Result<()> {
             .wrap(cors)
             .route("/", web::get().to(healthcheck))
             .route("/upload", web::post().to(upload))
-            .route("/files", web::get().to(upload))
+            .route("/files", web::get().to(file_list))
             .route("/files/{filename:.*}", web::get().to(get_file))
             .route("/download/{filename:.*}", web::get().to(download_file))
     })
@@ -91,4 +92,15 @@ async fn download_file(req: HttpRequest) -> Result<NamedFile> {
             parameters: Vec::new(),
         },
     ))
+}
+
+
+async fn file_list() -> Result<HttpResponse> {
+    let mut conn = establish_connection();
+    match list_files(&mut conn) {
+        Ok(files) => {
+            Ok(HttpResponse::Ok().json(files))
+        },
+        _ => Ok(HttpResponse::UnprocessableEntity().into())
+    }
 }

@@ -1,6 +1,7 @@
 pub mod models;
 pub mod schema;
 use crate::schema::files;
+use actix_web::Error;
 use chrono::Utc;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
@@ -15,13 +16,12 @@ pub fn establish_connection() -> SqliteConnection {
         .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
 }
 
-pub fn list_files(conn: &mut SqliteConnection) -> Vec<File> {
+pub fn list_files(conn: &mut SqliteConnection) -> Result<Vec<File>, Error > {
     use self::schema::files::dsl::*;
 
-    files
-        .limit(5)
+    Ok(files
         .load::<File>(conn)
-        .expect("Error loading posts")
+        .expect("Error loading posts"))
 }
 
 pub fn create_file(
