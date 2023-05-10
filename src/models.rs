@@ -3,7 +3,7 @@ use diesel::prelude::*;
 use serde::Serialize;
 use crate::schema::files;
 
-#[derive(Queryable, Debug, Serialize)]
+#[derive(Queryable, Debug, Serialize, Identifiable)]
 pub struct File {
     pub id: i32,
     pub file_name: String,

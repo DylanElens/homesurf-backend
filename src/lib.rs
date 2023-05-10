@@ -8,6 +8,7 @@ use diesel::sqlite::SqliteConnection;
 use dotenvy::dotenv;
 use models::{File, NewFile};
 use std::env;
+
 pub fn establish_connection() -> SqliteConnection {
     dotenv().ok();
 
@@ -16,12 +17,10 @@ pub fn establish_connection() -> SqliteConnection {
         .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
 }
 
-pub fn list_files(conn: &mut SqliteConnection) -> Result<Vec<File>, Error > {
+pub fn list_files(conn: &mut SqliteConnection) -> Result<Vec<File>, Error> {
     use self::schema::files::dsl::*;
 
-    Ok(files
-        .load::<File>(conn)
-        .expect("Error loading posts"))
+    Ok(files.load::<File>(conn).expect("Error loading posts"))
 }
 
 pub fn create_file(
@@ -42,3 +41,9 @@ pub fn create_file(
         .values(&new_file)
         .execute(conn)
 }
+
+pub fn delete_file(conn: &mut SqliteConnection, file_id: &i32) -> Result<usize, diesel::result::Error> {
+    use crate::schema::files::dsl::*;
+    diesel::delete(files.filter(id.eq(file_id))).execute(conn)
+}
+

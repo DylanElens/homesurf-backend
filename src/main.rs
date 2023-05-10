@@ -2,7 +2,7 @@ use actix_cors::Cors;
 use actix_files::NamedFile;
 use actix_multipart::Multipart;
 use actix_multipart_demo::models::File;
-use actix_multipart_demo::{create_file, establish_connection, list_files};
+use actix_multipart_demo::{create_file, establish_connection, list_files, delete_file};
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer};
 use futures_util::TryStreamExt as _;
 use std::io::Result;
@@ -24,6 +24,7 @@ async fn main() -> Result<()> {
             .route("/", web::get().to(healthcheck))
             .route("/upload", web::post().to(upload))
             .route("/files", web::get().to(file_list))
+            .route("/files/{id}", web::delete().to(delete_file_controller))
             .route("/files/{filename:.*}", web::get().to(get_file))
             .route("/download/{filename:.*}", web::get().to(download_file))
     })
@@ -77,6 +78,17 @@ async fn get_file(req: HttpRequest) -> Result<NamedFile> {
     ));
     println!("here we are {:?}", path);
     Ok(NamedFile::open(path)?)
+}
+
+async fn delete_file_controller(req: HttpRequest) -> Result<HttpResponse> {
+    let mut conn = establish_connection();
+    let file_id: i32 = req.match_info().get("id").unwrap().parse().unwrap();
+    println!("{:?}", file_id);
+    match delete_file(&mut conn, &file_id) {
+        Ok(_) =>  Ok(HttpResponse::Ok().into()),
+        Err(_) => Ok((HttpResponse::InternalServerError()).into()) 
+
+    }
 }
 
 async fn download_file(req: HttpRequest) -> Result<NamedFile> {
