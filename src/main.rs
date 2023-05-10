@@ -80,14 +80,11 @@ async fn get_file(req: HttpRequest) -> Result<NamedFile> {
     Ok(NamedFile::open(path)?)
 }
 
-async fn delete_file_controller(req: HttpRequest) -> Result<HttpResponse> {
+async fn delete_file_controller(_: HttpRequest, file_id: web::Path<i32>) -> Result<HttpResponse> {
     let mut conn = establish_connection();
-    let file_id: i32 = req.match_info().get("id").unwrap().parse().unwrap();
-    println!("{:?}", file_id);
     match delete_file(&mut conn, &file_id) {
-        Ok(_) =>  Ok(HttpResponse::Ok().into()),
-        Err(_) => Ok((HttpResponse::InternalServerError()).into()) 
-
+        Ok(_) => Ok(HttpResponse::Ok().into()),
+        Err(_) => Ok(HttpResponse::InternalServerError().into()),
     }
 }
 
