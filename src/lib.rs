@@ -42,8 +42,18 @@ pub fn create_file(
         .execute(conn)
 }
 
-pub fn delete_file(conn: &mut SqliteConnection, file_id: &i32) -> Result<usize, diesel::result::Error> {
+pub fn delete_file(
+    conn: &mut SqliteConnection,
+    file_id: &i32,
+) -> Result<usize, diesel::result::Error> {
     use crate::schema::files::dsl::*;
     diesel::delete(files.filter(id.eq(file_id))).execute(conn)
 }
 
+pub fn get_files_by_id(
+    conn: &mut SqliteConnection,
+    file_ids: &Vec<i32>,
+) -> Result<Vec<File>, diesel::result::Error> {
+    use crate::schema::files::dsl::*;
+    files.filter(id.eq_any(file_ids)).load::<File>(conn)
+}

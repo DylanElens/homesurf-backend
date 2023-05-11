@@ -2,9 +2,10 @@ use actix_cors::Cors;
 use actix_files::NamedFile;
 use actix_multipart::Multipart;
 use actix_multipart_demo::models::File;
-use actix_multipart_demo::{create_file, establish_connection, list_files, delete_file};
+use actix_multipart_demo::{create_file, establish_connection, list_files, delete_file, get_files_by_id};
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer};
 use futures_util::TryStreamExt as _;
+use serde::Deserialize;
 use std::io::Result;
 use std::path::{Path, PathBuf};
 use tokio::fs;
@@ -24,6 +25,7 @@ async fn main() -> Result<()> {
             .route("/", web::get().to(healthcheck))
             .route("/upload", web::post().to(upload))
             .route("/files", web::get().to(file_list))
+            .route("/bulk-download-files", web::post().to(bulk_download_files))
             .route("/files/{id}", web::delete().to(delete_file_controller))
             .route("/files/{filename:.*}", web::get().to(get_file))
             .route("/download/{filename:.*}", web::get().to(download_file))
@@ -103,6 +105,20 @@ async fn download_file(req: HttpRequest) -> Result<NamedFile> {
     ))
 }
 
+
+#[derive(Deserialize, Debug)]
+struct Info {
+    file_ids: Vec<i32>,
+}
+
+async fn bulk_download_files(payload: web::Json<Info>) -> Result<HttpResponse> {
+    let mut conn = establish_connection();
+    let files: Vec<File> = get_files_by_id(&mut conn, &payload.file_ids).unwrap();
+    println!("files {:?}", files);
+
+
+    Ok(HttpResponse::Ok().into())
+}
 
 async fn file_list() -> Result<HttpResponse> {
     let mut conn = establish_connection();
